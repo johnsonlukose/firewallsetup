@@ -1,0 +1,113 @@
+#!/bin/bash
+#
+# iptables example configuration script
+
+# Drop ICMP echo-request messages sent to broadcast or multicast addresses
+echo 1 > /proc/sys/net/ipv4/icmp_echo_ignore_broadcasts
+
+# Drop source routed packets
+echo 0 > /proc/sys/net/ipv4/conf/all/accept_source_route
+ 
+# Enable TCP SYN cookie protection from SYN floods
+echo 1 > /proc/sys/net/ipv4/tcp_syncookies
+ 
+# Don't accept ICMP redirect messages
+echo 0 > /proc/sys/net/ipv4/conf/all/accept_redirects
+ 
+# Don't send ICMP redirect messages
+echo 0 > /proc/sys/net/ipv4/conf/all/send_redirects
+ 
+# Enable source address spoofing protection
+echo 1 > /proc/sys/net/ipv4/conf/all/rp_filter
+ 
+# Log packets with impossible source addresses
+echo 1 > /proc/sys/net/ipv4/conf/all/log_martians
+ 
+# Flush all chains
+/sbin/iptables --flush
+ 
+# Allow unlimited traffic on the loopback interface
+/sbin/iptables -A INPUT -i lo -j ACCEPT
+/sbin/iptables -A OUTPUT -o lo -j ACCEPT
+ 
+# Set default policies
+/sbin/iptables --policy INPUT DROP
+/sbin/iptables --policy OUTPUT DROP
+/sbin/iptables --policy FORWARD DROP
+ 
+# Previously initiated and accepted exchanges bypass rule checking
+# Allow unlimited outbound traffic
+/sbin/iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+/sbin/iptables -A OUTPUT -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+ 
+#Ratelimit SSH for attack protection
+/sbin/iptables -A INPUT -p tcp --dport 22 -m state --state NEW -m recent --update --seconds 60 --hitcount 6 -j DROP
+/sbin/iptables -A INPUT -p tcp --dport 22 -m state --state NEW -m recent --set
+/sbin/iptables -A INPUT -p tcp --dport 22 -m state --state NEW -j ACCEPT
+
+# Allow certain ports to be accessible from the outside
+/sbin/iptables -A INPUT -p tcp --dport 7 -m state --state NEW -j ACCEPT  #echo
+/sbin/iptables -A INPUT -p udp --dport 7 -m state --state NEW -j ACCEPT  #echo
+/sbin/iptables -A INPUT -p tcp --dport 53 -m state --state NEW -j ACCEPT  #DNS
+/sbin/iptables -A INPUT -p udp --dport 53 -m state --state NEW -j ACCEPT  #DNS
+/sbin/iptables -A INPUT -p tcp --dport 79 -m state --state NEW -j ACCEPT  #finger
+/sbin/iptables -A INPUT -p tcp --dport 80 -m state --state NEW -j ACCEPT  #http
+/sbin/iptables -A INPUT -p tcp --dport 88 -m state --state NEW -j ACCEPT  #Kerberos
+/sbin/iptables -A INPUT -p tcp --dport 106 -m state --state NEW -j ACCEPT  #Password Server
+/sbin/iptables -A INPUT -p tcp --dport 111 -m state --state NEW -j ACCEPT  #Remote Procedure Call
+/sbin/iptables -A INPUT -p udp --dport 111 -m state --state NEW -j ACCEPT  #Remote Procedure Call
+/sbin/iptables -A INPUT -p tcp --dport 113 -m state --state NEW -j ACCEPT  #Identification Protocol
+/sbin/iptables -A INPUT -p tcp --dport 119 -m state --state NEW -j ACCEPT  #NNTP
+/sbin/iptables -A INPUT -p udp --dport 123 -m state --state NEW -j ACCEPT  #NTP
+/sbin/iptables -A INPUT -p udp --dport 137 -m state --state NEW -j ACCEPT  #WINS
+/sbin/iptables -A INPUT -p udp --dport 138 -m state --state NEW -j ACCEPT  #NETBIOS Datagram Service
+/sbin/iptables -A INPUT -p tcp --dport 139 -m state --state NEW -j ACCEPT  #Server Message Block
+/sbin/iptables -A INPUT -p udp --dport 101 -m state --state NEW -j ACCEPT  #Simple Network Management Protocol
+/sbin/iptables -A INPUT -p tcp --dport 389 -m state --state NEW -j ACCEPT  #Lightweight Directory Access Protocol
+/sbin/iptables -A INPUT -p tcp --dport 427 -m state --state NEW -j ACCEPT  #Service Location Protocol
+/sbin/iptables -A INPUT -p udp --dport 427 -m state --state NEW -j ACCEPT  #Service Location Protocol
+/sbin/iptables -A INPUT -p tcp --dport 443 -m state --state NEW -j ACCEPT  #https
+/sbin/iptables -A INPUT -p tcp --dport 484 -m state --state NEW -j ACCEPT  #kpasswd
+/sbin/iptables -A INPUT -p udp --dport 484 -m state --state NEW -j ACCEPT  #kpasswd
+/sbin/iptables -A INPUT -p udp --dport 500 -m state --state NEW -j ACCEPT  #WiFi calling
+/sbin/iptables -A INPUT -p tcp --dport 502 -m state --state NEW -j ACCEPT  #Modbus
+/sbin/iptables -A INPUT -p udp --dport 502 -m state --state NEW -j ACCEPT  #Modbus
+/sbin/iptables -A INPUT -p tcp --dport 514 -m state --state NEW -j ACCEPT  #shell
+/sbin/iptables -A INPUT -p udp --dport 514 -m state --state NEW -j ACCEPT  #syslog
+/sbin/iptables -A INPUT -p tcp --dport 515 -m state --state NEW -j ACCEPT  #Line Printer
+/sbin/iptables -A INPUT -p tcp --dport 532 -m state --state NEW -j ACCEPT  #netnews
+/sbin/iptables -A INPUT -p tcp --dport 554 -m state --state NEW -j ACCEPT  #Real Time Streaming Protocol
+/sbin/iptables -A INPUT -p udp --dport 554 -m state --state NEW -j ACCEPT  #Real Time Streaming Protocol
+/sbin/iptables -A INPUT -p udp --dport 623 -m state --state NEW -j ACCEPT  #Lights-Out-Monitoring
+/sbin/iptables -A INPUT -p tcp --dport 631 -m state --state NEW -j ACCEPT  #Internet Printing Protocol
+/sbin/iptables -A INPUT -p tcp --dport 636 -m state --state NEW -j ACCEPT  #Secure LDAP
+/sbin/iptables -A INPUT -p tcp --dport 749 -m state --state NEW -j ACCEPT  #Kerberos Admin
+/sbin/iptables -A INPUT -p udp --dport 749 -m state --state NEW -j ACCEPT  #Kerberos Admin
+/sbin/iptables -A INPUT -p tcp --dport 985 -m state --state NEW -j ACCEPT  #Netinfo Static Port
+/sbin/iptables -A INPUT -p tcp --dport 1085 -m state --state NEW -j ACCEPT  #WebObjects
+/sbin/iptables -A INPUT -p udp --dport 1085 -m state --state NEW -j ACCEPT  #WebObjects
+
+
+# Allow certain ports to be accessible from the outside
+# /sbin/iptables -A INPUT -p tcp --dport 25565 -m state --state NEW -j ACCEPT  #Minecraft
+# /sbin/iptables -A INPUT -p tcp --dport 8123 -m state --state NEW -j ACCEPT   #Dynmap plugin
+
+# Other rules for future use if needed.  Uncomment to activate
+/sbin/iptables -A INPUT -p tcp --dport 80 -m state --state NEW -j ACCEPT    # http
+/sbin/iptables -A INPUT -p tcp --dport 443 -m state --state NEW -j ACCEPT   # https
+
+# UDP packet rule.  This is just a random udp packet rule as an example only
+# /sbin/iptables -A INPUT -p udp --dport 5021 -m state --state NEW -j ACCEPT
+
+# Allow pinging of your server
+/sbin/iptables -A INPUT -p icmp --icmp-type 8 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+
+  
+# Drop all other traffic
+/sbin/iptables -A INPUT -j DROP
+
+# print the activated rules to the console when script is completed
+/sbin/iptables -nL
+
+# iptables-save command for Arch Linux as it is distribution dependent command
+# sudo iptables-save -f /etc/iptables/iptables.rules
